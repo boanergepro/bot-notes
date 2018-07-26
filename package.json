@@ -1,0 +1,16 @@
+{
+  "name": "bot-notes",
+  "version": "1.0.0",
+  "description": "Bot for organization my notes",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "author": "boanergepro",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.3",
+    "node-telegram-bot-api": "^0.30.0",
+    "nodemon": "^1.18.3"
+  }
+}
