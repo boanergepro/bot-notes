@@ -4,13 +4,27 @@
   "description": "Bot for organization my notes",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./.babelrc,./package.json,./npm-debug.log,telegram_users.db --copy-files",
+    "start": "npm run build && nodemon dist/src/index.js"
   },
   "author": "boanergepro",
-  "license": "MIT",
+  "license": {
+    "type": "MIT",
+    "url": "https://www.opensource.org/licenses/mit-license.php"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boanergepro/bot-notes.git"
+  },
   "dependencies": {
     "express": "^4.16.3",
-    "node-telegram-bot-api": "^0.30.0",
-    "nodemon": "^1.18.3"
+    "lokijs": "^1.5.5",
+    "node-telegram-bot-api": "^0.30.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "nodemon": "^1.18.3",
+    "rimraf": "^2.6.2"
   }
 }
