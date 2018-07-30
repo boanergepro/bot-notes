@@ -1,5 +1,5 @@
-const COMMAND_NOTES = "🗒 Notas";
-const COMMAD_NEW_NOTE = "Nueva nota";
+const COMMAND_NOTES = "📚 Notas";
+const COMMAD_NEW_NOTE = "📗 Nueva nota";
 const COMMAND_EDIT_NOTE = "✏️ Editar Nota";
 const COMMAND_DEL_NOTE = "🗑 Borrar Nota";
 const COMMAND_RETURN = "🔙 Atras"
