@@ -1,6 +1,8 @@
 import express from 'express';
 import TelegramBot from 'node-telegram-bot-api';
 import conf from '../config/config';
+import keyboards from './keyboards';
+import DBService from './db';
 import {
     ALL_COMMANDS,
     COMMAND_NOTES,
@@ -10,11 +12,10 @@ import {
     COMMAND_RETURN
 } from "./commands";
 
-import keyboards from './keyboards';
-
 const token = conf.telegram_token;
 const app = express();
 const bot = new TelegramBot(token, {polling: true});
+const DB = new DBService();
 
 app.get('/', (req, res) => {
     res.send('BOT RUNING')
@@ -30,20 +31,19 @@ bot.onText(/\/start/, (msg) => {
         }
     )
 });
-//
-// bot.onText(/\/carro/, (msg) => {
-//     const chatId = msg.chat.id;
-//     var options = {
-//         reply_markup: JSON.stringify({
-//             inline_keyboard: [
-//                 [{ text: 'Some button text 1', callback_data: '1' }],
-//                 [{ text: 'Some button text 2', callback_data: '2' }],
-//                 [{ text: 'Some button text 3', callback_data: '3' }]
-//             ]
-//         })
-//     };
-//     bot.sendMessage(msg.chat.id, 'Some text giving three inline buttons', options);
-// });
+// Crear registros
+/*DB.insert(conf.collectionNote, [
+    {
+        "tittle": 'docker',
+        "message": '```docker ps -a = ver todos los contenedores exixtentes```'
+    },
+    {
+        "tittle": 'vps',
+        "message": '```ssh 183.249.30.200 -l acarrizo = conectar al vps ```'
+    }
+]).then((col) => {
+    console.log("insert", col);
+});*/
 
 bot.on('message', (msg) => {
     if (msg.hasOwnProperty('text')) {
@@ -52,16 +52,35 @@ bot.on('message', (msg) => {
             switch (message) {
                 case COMMAND_NOTES:
                     console.log("ver notas");
-                    var options = {
-                        reply_markup: JSON.stringify({
-                            inline_keyboard: [
-                                [{ text: 'Comandos Docker', callback_data: '1' }],
-                                [{ text: 'Recetas de cocina', callback_data: '2' }],
-                                [{ text: 'Cuentas bancarias', callback_data: '3' }]
-                            ]
-                        })
-                    };
-                    bot.sendMessage(msg.chat.id, 'Notas', options);
+
+                    let inline_buttons_notes = [];
+                    DB.getCollection(conf.collectionNote).then((collection) => {
+                        let result = collection.find();
+                        for (let position in result) {
+                            inline_buttons_notes.push(
+                                {
+                                    text: result[position].tittle,
+                                    callback_data: result[position].tittle
+                                }
+                            );
+                        }
+                    }).then(() => {
+                        bot.sendMessage(msg.chat.id, "Todas las notas!", {
+                            "reply_markup": {
+                                "inline_keyboard": [
+                                    inline_buttons_notes,
+                                ],
+                            }
+                        });
+                        bot.sendMessage(msg.chat.id, "Puede ir al menu anterior precionando atras.", {
+                            "reply_markup": {
+                                resize_keyboard: true,
+                                "keyboard": keyboards.return_command
+                            }
+                        });
+                    });
+
+
                     break;
 
                 case COMMAND_RETURN:
@@ -80,6 +99,20 @@ bot.on('message', (msg) => {
     }
 });
 
+bot.on("callback_query", (callbackQuery) => {
+    const msg = callbackQuery.message;
+    bot.answerCallbackQuery(callbackQuery.id)
+        .then(() => {
+            DB.getCollection(conf.collectionNote).then((collection) => {
+                return collection.findOne({tittle: callbackQuery.data})
+            }).then((data) => {
+                let messaje = `<strong>${data.tittle}</strong>
+<code>${data.message}</code>`;
+                bot.sendMessage(msg.chat.id, messaje, {parse_mode: "HTML"});
+            })
+        });
+
+});
 
 bot.on('polling_error', (error) => {
     console.log(error);
