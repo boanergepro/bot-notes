@@ -18,7 +18,13 @@ const home = [
     ]
 
 ];
+const return_command = [
+    [
+        COMMAND_RETURN
+    ]
+];
 
 export default {
-    home
+    home,
+    return_command
 };
