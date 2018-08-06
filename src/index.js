@@ -17,6 +17,16 @@ const app = express();
 const bot = new TelegramBot(token, {polling: true});
 const DB = new DBService();
 
+let trash = '';
+
+const flow = {
+    ALL_NOTES: false,
+    NEW_NOTE: false,
+    NAME_NEW_NOTE: false,
+    MESSAGE_NEW_NOTE: false,
+    SAVE_NEW_NOTE :false,
+};
+
 app.get('/', (req, res) => {
     res.send('BOT RUNING')
 });
@@ -35,15 +45,32 @@ bot.onText(/\/start/, (msg) => {
 /*DB.insert(conf.collectionNote, [
     {
         "tittle": 'docker',
-        "message": '```docker ps -a = ver todos los contenedores exixtentes```'
+        "message": 'docker ps -a = ver todos los contenedores exixtentes'
     },
     {
-        "tittle": 'vps',
-        "message": '```ssh 183.249.30.200 -l acarrizo = conectar al vps ```'
+        "tittle": 'docker buil',
+        "message": 'docker build -t nameImage pathDockerfile'
     }
 ]).then((col) => {
     console.log("insert", col);
 });*/
+const createNote = (tittle, message) => {
+    DB.insert(conf.collectionNote, [
+        {
+            "tittle": tittle,
+            "message": message
+        }
+    ])
+        .then((col) => {
+            flow.NEW_NOTE = false;
+            flow.NAME_NEW_NOTE = false;
+            flow.MESSAGE_NEW_NOTE = false;
+            console.log("insert", col);
+        })
+        .catch((err) => {
+            console.log("error", err);
+        });
+};
 
 bot.on('message', (msg) => {
     if (msg.hasOwnProperty('text')) {
@@ -65,6 +92,7 @@ bot.on('message', (msg) => {
                             );
                         }
                     }).then(() => {
+                        console.log(inline_buttons_notes);
                         bot.sendMessage(msg.chat.id, "Todas las notas!", {
                             "reply_markup": {
                                 "inline_keyboard": [
@@ -72,15 +100,29 @@ bot.on('message', (msg) => {
                                 ],
                             }
                         });
-                        bot.sendMessage(msg.chat.id, "Puede ir al menu anterior precionando atras.", {
-                            "reply_markup": {
-                                resize_keyboard: true,
-                                "keyboard": keyboards.return_command
-                            }
-                        });
+                        /* bot.sendMessage(msg.chat.id, "Puede ir al menu anterior precionando atras.", {
+                             "reply_markup": {
+                                 resize_keyboard: true,
+                                 "keyboard": keyboards.return_command
+                             }
+                         });*/
                     });
+                    break;
 
-
+                case COMMAD_NEW_NOTE:
+                    const chatId = msg.chat.id;
+                    flow.NEW_NOTE = true;
+                    if (flow.NEW_NOTE) {
+                        flow.NAME_NEW_NOTE = true;
+                        bot.sendMessage(
+                            chatId,
+                            "Ingrese el nombre de la nota.", {
+                                "reply_markup": {
+                                    "keyboard": keyboards.return_command
+                                }
+                            }
+                        );
+                    }
                     break;
 
                 case COMMAND_RETURN:
@@ -94,6 +136,10 @@ bot.on('message', (msg) => {
                         }
                     );
                     break
+            }
+            if (flow.NEW_NOTE && flow.NAME_NEW_NOTE) {
+                trash = message;
+                console.log("trash",trash);
             }
         }
     }
