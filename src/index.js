@@ -137,10 +137,13 @@ bot.on('message', (msg) => {
                     );
                     break
             }
-            if (flow.NEW_NOTE && flow.NAME_NEW_NOTE) {
-                trash = message;
-                console.log("trash",trash);
+            if (message !== COMMAD_NEW_NOTE && mesa){
+                if (flow.NEW_NOTE && flow.NAME_NEW_NOTE) {
+                    trash = message;
+                    console.log("trash",trash);
+                }
             }
+
         }
     }
 });
