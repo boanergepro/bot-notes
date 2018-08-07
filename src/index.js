@@ -11,7 +11,7 @@ import {
     COMMAND_DEL_NOTE,
     COMMAND_RETURN
 } from "./commands";
-
+import { is_command } from './utils';
 const token = conf.telegram_token;
 const app = express();
 const bot = new TelegramBot(token, {polling: true});
@@ -65,6 +65,7 @@ const createNote = (tittle, message) => {
             flow.NEW_NOTE = false;
             flow.NAME_NEW_NOTE = false;
             flow.MESSAGE_NEW_NOTE = false;
+            trash = '';
             console.log("insert", col);
         })
         .catch((err) => {
@@ -137,10 +138,24 @@ bot.on('message', (msg) => {
                     );
                     break
             }
-            if (message !== COMMAD_NEW_NOTE && mesa){
+            if (is_command(message)){
+                let chatId = msg.chat.id;
+
                 if (flow.NEW_NOTE && flow.NAME_NEW_NOTE) {
                     trash = message;
-                    console.log("trash",trash);
+                    flow.NAME_NEW_NOTE = false;
+                    flow.MESSAGE_NEW_NOTE = true;
+                    bot.sendMessage(
+                        chatId,
+                        "Por favor ingrese el contenido de la nota.", {
+                            "reply_markup": {
+                                "keyboard": keyboards.return_command
+                            }
+                        }
+                    );
+                }
+                else if (flow.NEW_NOTE && flow.MESSAGE_NEW_NOTE) {
+                    createNote(trash, message)
                 }
             }
 
